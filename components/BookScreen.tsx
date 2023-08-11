@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   ScrollView,
   Dimensions,
+  Linking
 } from 'react-native';
 import StarRating from 'react-native-star-rating';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -18,6 +19,16 @@ export default function BookScreen(props: any) {
   const {navigation , route} = props;
 
   let item = route.params.data
+  console.log(item.link);
+
+  const OpenURL = () => {
+    if (item.link) {
+      Linking.openURL(item.link)
+    }else{
+     navigation.goBack(); 
+    }
+  }
+  
   
   return (
     <View style={styles.container}>
@@ -99,7 +110,7 @@ export default function BookScreen(props: any) {
             </View>
           </View>
 
-          <TouchableOpacity style={styles.viewDetailsBtn}>
+          <TouchableOpacity style={styles.viewDetailsBtn} onPress={() => OpenURL()}>
             <Text style={styles.viewDetailsBtnTxt}>View Details</Text>
             <LinkIcon
               name="external-link"
