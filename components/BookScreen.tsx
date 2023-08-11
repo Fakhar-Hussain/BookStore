@@ -28,6 +28,7 @@ export default function BookScreen(props: any) {
         <ScrollView
           showsVerticalScrollIndicator={false}
           style={{maxHeight: '100%'}}>
+
           {/* Header */}
           <View style={styles.headerView}>
             <TouchableOpacity
@@ -47,15 +48,15 @@ export default function BookScreen(props: any) {
             <View style={styles.bookTextContainer}>
               {/* Rating */}
               <TouchableOpacity style={styles.bookTextView}>
-                <Text style={styles.bookText}>Ratings</Text>
+                <Text style={[styles.bookText, {marginTop:-5}]}>Ratings</Text>
                 <StarRating
                   disabled={true}
                   maxStars={5}
                   starSize={16}
                   rating={item.rating}
                   fullStarColor="orange"
-                  emptyStarColor="lightgrey"
-                  starStyle={{marginLeft: 2}}
+                  emptyStarColor="gray"
+                  starStyle={{marginLeft: 2,marginVertical: 1}}
                 />
               </TouchableOpacity>
               {/* Review */}
@@ -119,17 +120,17 @@ const styles = StyleSheet.create({
   },
 
   headerView: {
-
-    // flex: 0.1,
     width: "85%",
     height: 50,
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#fff',
+    marginVertical: 10,
+    alignSelf: "center"
   },
   headerIcon: {
     position: 'absolute',
-    left: 20,
+    // left: 20,
   },
   // Details
   detailsView: {
@@ -165,7 +166,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   bookText: {
-    fontSize: 12,
+    fontSize: 13,
     fontFamily: 'Poppins-SemiBold',
     color: '#000',
   },
