@@ -19,7 +19,6 @@ export default function BookScreen(props: any) {
   const {navigation , route} = props;
 
   let item = route.params.data
-  console.log(item.link);
 
   const OpenURL = () => {
     if (item.link) {
