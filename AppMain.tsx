@@ -33,7 +33,7 @@ const AppMain = () => {
 
   
   useEffect(() => {
-    DataFetch();
+    // DataFetch();
     setTimeout(() => {
       setTime(false);
     }, 3500);

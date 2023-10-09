@@ -13,16 +13,22 @@ import {
 import Icon from 'react-native-vector-icons/FontAwesome';
 import StarRating from 'react-native-star-rating';
 import {useSelector} from 'react-redux';
+import axios from 'axios';
 
 export default function HomeScreen(props: any) {
   const StoreBooksData = useSelector((state: any) => state.book);
   const {navigation} = props;
+  // console.log(StoreBooksData[0]);
+
 
   const [search, setSearch] = useState('');
   const [filterData, setFilterData] = useState(StoreBooksData);
 
   const [loader, setLoader] = useState(true);
+  const [listLoading, setListLoading] = useState(false);
   const [record, setRecord] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [Data, setData] = useState<any>([]);
 
   const SearchBar = (text: any) => {
     let data = StoreBooksData.filter((item: any) => {
@@ -39,11 +45,11 @@ export default function HomeScreen(props: any) {
         return item.title.toLowerCase().includes(text.toLowerCase());
       });
       const dataArray = [];
-      dataArray.push(...filteredList); 
+      dataArray.push(...filteredList);
 
       let numColumns = 2;
       let totalRows = Math.floor(dataArray.length / numColumns);
-      let LastRow = dataArray.length - totalRows * numColumns; 
+      let LastRow = dataArray.length - totalRows * numColumns;
 
       while (LastRow !== 0 && LastRow !== numColumns) {
         dataArray.push({title: `block-${LastRow}`, empty: true});
@@ -51,11 +57,69 @@ export default function HomeScreen(props: any) {
       }
       setFilterData(dataArray);
     } else {
-      setFilterData(StoreBooksData);
+      setFilterData(StoreBooksData);      
     }
   };
 
+  const DataFetch = async () => {
+    setListLoading(true)
+    let response = await axios.get('https://books-list-api.vercel.app/books', {
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+        'x-api-key': '#b0@6hX8YasCq6^unOaPw1tqR',
+      },
+    });
+
+    let newDataResponse = response.data.data;
+    
+    try {
+      let maxItemsPerPage = 20;
+
+      let FetchLimit = (data:any , page: any , itemsPerPage: any) => {
+        let startIndex = (page - 1) * itemsPerPage;
+        let endIndex = startIndex + itemsPerPage;
+        return data.slice(startIndex, endIndex)
+      }
+
+      let FetchLimitResponse = FetchLimit(newDataResponse, currentPage, maxItemsPerPage)
+      setData([...Data, ...FetchLimitResponse])
+      setCurrentPage(currentPage + 1);
+
+    } catch (error) {
+      console.log("Data Fetch: ", error);
+    } finally {
+      setTimeout(() => {
+        setListLoading(false);
+      }, 600);
+    }
+
+  };
+
+  // const FetchData = async () => {
+  //   setListLoading(true)
+  //   try {
+  //     let maxItemsPerPage = 10;
+
+  //     let limitedData = (data: any , page: any , itemsPerPage: any) => {
+  //       let StartIndex = (page - 1) * itemsPerPage; 
+  //       let EndIndex = StartIndex + itemsPerPage; 
+  //       return data.slice(StartIndex, EndIndex)
+  //     }
+
+  //     let limitData = limitedData(StoreBooksData , currentPage , maxItemsPerPage)
+  //     setData([ ...data, ...limitData ]);
+  //     setCurrentPage(currentPage + 1)
+  //     setListLoading(false)
+  //     // console.log("listLoading: ", listLoading);
+  //   } catch (error) {
+  //     console.log("Error in FetchData: ", error);
+  //   }
+  // }
+
   useEffect(() => {
+    // FetchData();
+    DataFetch();
     setTimeout(() => {
       setLoader(false);
     }, 2000);
@@ -114,18 +178,24 @@ export default function HomeScreen(props: any) {
             />
           </View>
         ) : (
+          <>
           <FlatList
-            data={filterData}
-            columnWrapperStyle={{justifyContent: 'space-evenly',}}
+            data={Data}
+            columnWrapperStyle={{justifyContent: 'space-evenly'}}
             numColumns={2}
-            renderItem={({item, index}: any) => {
-
+            onEndReached={DataFetch}
+            onEndReachedThreshold={1}
+            renderItem={({item}: any) => {
               if (item.empty === true) {
-                return <View style={{
-                  width: 166,
-                  marginBottom: "8%",
-                  paddingHorizontal:"3%",
-                }} />
+                return (
+                  <View
+                    style={{
+                      width: 166,
+                      marginBottom: '8%',
+                      paddingHorizontal: '3%',
+                    }}
+                  />
+                );
               }
 
               return (
@@ -160,7 +230,7 @@ export default function HomeScreen(props: any) {
                     <StarRating
                       disabled={true}
                       maxStars={5}
-                      starSize={22}
+                      starSize={19}
                       rating={item.rating}
                       fullStarColor="orange"
                       emptyStarColor="lightgrey"
@@ -174,7 +244,19 @@ export default function HomeScreen(props: any) {
                 </TouchableOpacity>
               );
             }}
+            ListFooterComponent={() =>
+              listLoading && (
+                <ActivityIndicator size={"large"} color="#004d6d" style={{marginVertical:10, position: "absolute", bottom: 10, alignSelf: "center"}} />
+              )
+            }
+
+            ListFooterComponentStyle={{height: 60,width: "100%",zIndex: 2}}
+            
           />
+          {/* {listLoading && (
+            <ActivityIndicator size={"large"} color="#004d6d" style={{marginVertical:10, position: "absolute", bottom: 10, alignSelf: "center"}} />
+          )} */}
+        </>
         )}
       </View>
     </View>
@@ -284,10 +366,10 @@ const styles = StyleSheet.create({
     marginVertical: 3,
   },
   bookReview: {
-    fontSize: 14,
+    fontSize: 12,
     fontFamily: 'Poppins-Regular',
     marginLeft: 7,
-    marginTop: 6,
+    marginTop: 4,
     color: 'gray',
   },
   bookPrice: {
