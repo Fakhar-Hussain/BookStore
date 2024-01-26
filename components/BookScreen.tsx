@@ -27,7 +27,11 @@ export default function BookScreen(props: any) {
      navigation.goBack(); 
     }
   }
-  
+
+  let rating = Math.floor(item.pages/120);
+  let review = Math.floor(item.pages/20);
+  let price = Math.floor(item.pages/3);
+
   
   return (
     <View style={styles.container}>
@@ -51,7 +55,7 @@ export default function BookScreen(props: any) {
           {/* Book Card */}
           <View style={[styles.bookCardContainer, {height: width * 1.1}]}>
             <Image
-              source={{uri: item.imageLink}}
+              source={item.image}
               resizeMode="stretch"
               style={styles.bookImage}
             />
@@ -63,7 +67,7 @@ export default function BookScreen(props: any) {
                   disabled={true}
                   maxStars={5}
                   starSize={16}
-                  rating={item.rating}
+                  rating={rating}
                   fullStarColor="orange"
                   emptyStarColor="gray"
                   starStyle={{marginLeft: 2,marginVertical: 1}}
@@ -72,12 +76,12 @@ export default function BookScreen(props: any) {
               {/* Review */}
               <TouchableOpacity style={styles.bookTextView}>
                 <Text style={styles.bookText}>Reviews</Text>
-                <Text style={styles.bookTextTwo}>({item.reviews})</Text>
+                <Text style={styles.bookTextTwo}>({review})</Text>
               </TouchableOpacity>
               {/* Price */}
               <TouchableOpacity style={styles.bookTextView}>
                 <Text style={styles.bookText}>Price</Text>
-                <Text style={styles.bookTextTwo}>$ {item.price}</Text>
+                <Text style={styles.bookTextTwo}>$ {price}</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -110,9 +114,17 @@ export default function BookScreen(props: any) {
           </View>
 
           <TouchableOpacity style={styles.viewDetailsBtn} onPress={() => OpenURL()}>
-            <Text style={styles.viewDetailsBtnTxt}>View Details</Text>
+            <Text style={styles.viewDetailsBtnTxt}>View Online</Text>
             <LinkIcon
               name="external-link"
+              size={20}
+              style={styles.viewDetailsBtnIcon}
+            />
+          </TouchableOpacity>
+          <TouchableOpacity style={[styles.viewDetailsBtn, {marginTop: -15, backgroundColor: "green"}]} onPress={() => navigation.goBack() }>
+            <Text style={styles.viewDetailsBtnTxt}>Order Now</Text>
+            <LinkIcon
+              name="download"
               size={20}
               style={styles.viewDetailsBtnIcon}
             />

@@ -14,64 +14,64 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import StarRating from 'react-native-star-rating';
 import {useSelector} from 'react-redux';
 import axios from 'axios';
+import books from '../assets/books';
 
-export default function HomeScreen(props: any) {
-  const StoreBooksData = useSelector((state: any) => state.book);
+const HomeScreen = (props: any) => {
+  // const StoreBooksData = useSelector((state: any) => state.book);
   const {navigation} = props;
-  // console.log(StoreBooksData[0]);
-
-
   const [search, setSearch] = useState('');
-  const [filterData, setFilterData] = useState(StoreBooksData);
+  const [filterData, setFilterData] = useState(books);
 
   const [loader, setLoader] = useState(true);
   const [listLoading, setListLoading] = useState(false);
-  const [record, setRecord] = useState(false);
+  const [recordNotFound, setRecordNotFound] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [Data, setData] = useState<any>([]);
 
-  const SearchBar = (text: any) => {
-    let data = StoreBooksData.filter((item: any) => {
-      return item.title.toLowerCase().indexOf(text.toLowerCase()) > -1;
-    });
-    if (data == '') {
-      setRecord(true);
-    } else {
-      setRecord(false);
-    }
 
-    if (text) {
-      let filteredList = StoreBooksData.filter((item: any) => {
-        return item.title.toLowerCase().includes(text.toLowerCase());
+
+
+
+  const SearchBar = (searchText: any) => {
+    
+    if (searchText) {
+      let filteredList = books.filter((item: any) => {
+        return item.title.toLowerCase().includes(searchText.toLowerCase());
       });
-      const dataArray = [];
-      dataArray.push(...filteredList);
 
-      let numColumns = 2;
-      let totalRows = Math.floor(dataArray.length / numColumns);
-      let LastRow = dataArray.length - totalRows * numColumns;
+      
+      if (filteredList.length > 0) {
+        setRecordNotFound(false);
+        const dataArray: any = [];
+        dataArray.push(...filteredList);
+        
+        let numColumns = 2;
+        let totalRows = Math.floor(dataArray.length / numColumns);
+        let LastRow = dataArray.length - totalRows * numColumns;
+        
+        while (LastRow !== 0 && LastRow !== numColumns) {
+          dataArray.push({title: `block-${LastRow}`, empty: true});
+          LastRow++;
+        }
+        setFilterData(dataArray);
 
-      while (LastRow !== 0 && LastRow !== numColumns) {
-        dataArray.push({title: `block-${LastRow}`, empty: true});
-        LastRow++;
+      } else {
+        setRecordNotFound(true);
       }
-      setFilterData(dataArray);
+      
+
     } else {
-      setFilterData(StoreBooksData);      
+      setFilterData(books);      
     }
   };
 
+
+
+
   const DataFetch = async () => {
     setListLoading(true)
-    let response = await axios.get('https://books-list-api.vercel.app/books', {
-      headers: {
-        Accept: 'application/json',
-        'Content-Type': 'application/json',
-        'x-api-key': '#b0@6hX8YasCq6^unOaPw1tqR',
-      },
-    });
 
-    let newDataResponse = response.data.data;
+    let newDataResponse = books;
     
     try {
       let maxItemsPerPage = 20;
@@ -96,29 +96,9 @@ export default function HomeScreen(props: any) {
 
   };
 
-  // const FetchData = async () => {
-  //   setListLoading(true)
-  //   try {
-  //     let maxItemsPerPage = 10;
 
-  //     let limitedData = (data: any , page: any , itemsPerPage: any) => {
-  //       let StartIndex = (page - 1) * itemsPerPage; 
-  //       let EndIndex = StartIndex + itemsPerPage; 
-  //       return data.slice(StartIndex, EndIndex)
-  //     }
-
-  //     let limitData = limitedData(StoreBooksData , currentPage , maxItemsPerPage)
-  //     setData([ ...data, ...limitData ]);
-  //     setCurrentPage(currentPage + 1)
-  //     setListLoading(false)
-  //     // console.log("listLoading: ", listLoading);
-  //   } catch (error) {
-  //     console.log("Error in FetchData: ", error);
-  //   }
-  // }
 
   useEffect(() => {
-    // FetchData();
     DataFetch();
     setTimeout(() => {
       setLoader(false);
@@ -165,7 +145,7 @@ export default function HomeScreen(props: any) {
             <ActivityIndicator size={45} color={'#004d6d'} />
             <Text style={styles.loaderTxt}>Please wait</Text>
           </View>
-        ) : record ? (
+        ) : recordNotFound ? (
           <View
             style={{
               alignSelf: 'center',
@@ -180,12 +160,17 @@ export default function HomeScreen(props: any) {
         ) : (
           <>
           <FlatList
-            data={Data}
+            data={search ? filterData : Data}
             columnWrapperStyle={{justifyContent: 'space-evenly'}}
             numColumns={2}
             onEndReached={DataFetch}
             onEndReachedThreshold={1}
-            renderItem={({item}: any) => {
+            renderItem={({item, index}: any) => {
+
+              let rating = Math.floor(item.pages/120);
+              let review = Math.floor(item.pages/20);
+              let price = Math.floor(item.pages/3);
+              
               if (item.empty === true) {
                 return (
                   <View
@@ -204,7 +189,7 @@ export default function HomeScreen(props: any) {
                   onPress={() => navigation.navigate('Book', {data: item})}>
                   {/* Book Image */}
                   <Image
-                    source={{uri: item.imageLink}}
+                    source={item.image}
                     resizeMode="cover"
                     style={styles.bookImage}
                   />
@@ -212,7 +197,7 @@ export default function HomeScreen(props: any) {
                   {/* Heart Container */}
                   <TouchableOpacity style={styles.bookHeartContainer}>
                     <Icon
-                      name={item.is_liked ? 'heart' : 'heart-o'}
+                      name={item.pages < 300 ? 'heart' : 'heart-o'}
                       size={18}
                       color="red"
                     />
@@ -231,16 +216,16 @@ export default function HomeScreen(props: any) {
                       disabled={true}
                       maxStars={5}
                       starSize={19}
-                      rating={item.rating}
+                      rating={rating}
                       fullStarColor="orange"
                       emptyStarColor="lightgrey"
                       starStyle={styles.bookRatingStar}
                     />
-                    <Text style={styles.bookReview}>({item.reviews})</Text>
+                    <Text style={styles.bookReview}>({review})</Text>
                   </View>
 
                   {/* Book Price */}
-                  <Text style={styles.bookPrice}>$ {item.price}</Text>
+                  <Text style={styles.bookPrice}>$ {price}.00</Text>
                 </TouchableOpacity>
               );
             }}
@@ -253,15 +238,31 @@ export default function HomeScreen(props: any) {
             ListFooterComponentStyle={{height: 60,width: "100%",zIndex: 2}}
             
           />
-          {/* {listLoading && (
-            <ActivityIndicator size={"large"} color="#004d6d" style={{marginVertical:10, position: "absolute", bottom: 10, alignSelf: "center"}} />
-          )} */}
+          
         </>
         )}
       </View>
     </View>
   );
 }
+
+
+export default HomeScreen;
+
+
+    // let response = await axios.get('https://books-list-api.vercel.app/books', {
+    //   headers: {
+    //     Accept: 'application/json',
+    //     'Content-Type': 'application/json',
+    //     'x-api-key': '#b0@6hX8YasCq6^unOaPw1tqR',
+    //   },
+    // });
+
+    // {/* {listLoading && (
+    //     <ActivityIndicator size={"large"} color="#004d6d" style={{marginVertical:10, position: "absolute", bottom: 10, alignSelf: "center"}} />
+    //   )} */}
+
+
 
 const styles = StyleSheet.create({
   container: {
@@ -296,10 +297,11 @@ const styles = StyleSheet.create({
   searchBarInput: {
     backgroundColor: '#f1f1f1',
     width: '92%',
-    height: 45,
+    height: 50,
     borderRadius: 25,
     paddingLeft: 50,
-    fontSize: 16,
+    fontSize: 18,
+    fontFamily: 'Ubuntu-Medium',
   },
   searchBarIcon: {
     position: 'absolute',
@@ -370,7 +372,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Poppins-Regular',
     marginLeft: 7,
     marginTop: 4,
-    color: 'gray',
+    color: '#3e3e3e',
   },
   bookPrice: {
     fontSize: 16,
